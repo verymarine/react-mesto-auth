@@ -1,7 +1,7 @@
 .popup-info__image {
   padding: 0;
   margin: 60px auto 0 auto;
-  background-image: url('../../../images/confirm.svg');
+  /* background-image: url('../../../images/confirm.svg'); */
   background-size: 120px 120px;
   background-position: center;
   background-color: transparent;

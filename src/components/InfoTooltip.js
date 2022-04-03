@@ -1,4 +1,6 @@
 import React from "react";
+import logogOk from '../images/confirm.svg';
+import logoError from '../images/failure.svg';
 
 function InfoTooltip(props) {
   return (
@@ -9,7 +11,15 @@ function InfoTooltip(props) {
           type="button"
           onClick={props.onClose}
         ></button>
-        <img className="popup-info__image" />
+        <img
+          className="popup-info__image"
+          src={`${
+            props.status
+              ? logogOk
+              : logoError
+          }`}
+          alt="Результат регистрации"
+        />
         <h2 className="popup-info__title">
           {`${
             props.status
