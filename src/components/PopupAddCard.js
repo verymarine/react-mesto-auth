@@ -38,7 +38,7 @@ function PopupAddCard(props) {
       <fieldset className="popup__set">
         <label className="popup__field">
           <input
-            value={`${name}`}
+            value={name}
             onChange={handleChangeName}
             className="popup__input popup__input_type_place"
             placeholder="Название"
@@ -53,7 +53,7 @@ function PopupAddCard(props) {
         </label>
         <label className="popup__field">
           <input
-            value={`${link}`}
+            value={link}
             onChange={handleChangeLink}
             className="popup__input popup__input_type_link"
             placeholder="Ссылка на картинку"

@@ -1,5 +1,5 @@
 import React from "react";
-import logogOk from '../images/confirm.svg';
+import logoOk from '../images/confirm.svg';
 import logoError from '../images/failure.svg';
 
 function InfoTooltip(props) {
@@ -15,7 +15,7 @@ function InfoTooltip(props) {
           className="popup-info__image"
           src={`${
             props.status
-              ? logogOk
+              ? logoOk
               : logoError
           }`}
           alt="Результат регистрации"

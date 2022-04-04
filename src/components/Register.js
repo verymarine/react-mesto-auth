@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, withRouter, useHistory } from "react-router-dom";
 import Header from "./Header";
-import * as auth from "./auth";
+import * as auth from "../utils/auth";
 
 function Register(props) {
   const [values, setValues] = React.useState({
@@ -23,20 +23,21 @@ function Register(props) {
     e.preventDefault();
 
     if (values.email || values.password) {
-      auth
-        .register(values.email, values.password)
-        .then((res) => {
-          if (res.data._id) {
-            props.toolTipStatus(true);
-            props.onToolTip(); // по дефолту значение тру
-            history.push("/sign-in"); // если проверка пароля прошла успешно то мы редеректим на страницу авторизации
-          }
-        })
-        .catch((err) => {
-          props.toolTipStatus(false);
-          props.onToolTip();
-          console.log("Error at register", err);
-        });
+      props.submitRegister(values.email, values.password);
+      // auth
+      //   .register(values.email, values.password)
+      //   .then((res) => {
+      //     if (res.data._id) {
+      //       props.toolTipStatus(true);
+      //       props.onToolTip(); // по дефолту значение тру
+      //       history.push("/sign-in"); // если проверка пароля прошла успешно то мы редеректим на страницу авторизации
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     props.toolTipStatus(false);
+      //     props.onToolTip();
+      //     console.log("Error at register", err);
+      //   });
     }
   };
 

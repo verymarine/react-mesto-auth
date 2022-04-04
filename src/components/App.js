@@ -18,7 +18,7 @@ import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import Register from "./Register";
 import Login from "./Login";
 import ProtectedRoute from "./ProtectedRoute";
-import * as auth from "./auth";
+import * as auth from "../utils/auth";
 import InfoTooltip from "./InfoTooltip";
 
 function App() {
@@ -48,16 +48,17 @@ function App() {
 
   // Стейт, в котором содержится значение попапа, используем для установки статуса и вызова нужного модального окна
   const [toolTipStatus, setToolTipStatus] = React.useState(false);
-  console.log("status", toolTipStatus);
 
   // Стейт, в котором содержится значение об имейле пользователя
   const [userEmail, setUserEmail] = React.useState("");
 
-
-  const [userEmailStatus, setUserEmailStatus] = React.useState(false);
-
   // используем для сохранения/удаления данных об вошедшем пользователе
   const history = useHistory();
+
+  const [values, setValues] = React.useState({
+    email: "",
+    password: "",
+  });
 
   // Обработчик открытия попапа Аватара обновляет стейт
   function handleEditAvatarClick() {
@@ -128,13 +129,15 @@ function App() {
 
   // получаем данные о пользователе и карточках на странице
   React.useEffect(() => {
-    Promise.all([api.getUserInfo(), api.getCards()])
-      .then(([userData, cardsList]) => {
-        setCurrentUser(userData);
-        setCards(cardsList);
-      })
-      .catch((err) => console.log("Ошибка", err));
-  }, []);
+    if (loggedIn) {
+      Promise.all([api.getUserInfo(), api.getCards()])
+        .then(([userData, cardsList]) => {
+          setCurrentUser(userData);
+          setCards(cardsList);
+        })
+        .catch((err) => console.log("Ошибка", err));
+    }
+  }, [loggedIn]);
 
   // обработчик постановки лайка
   function handleCardLike(card) {
@@ -154,9 +157,12 @@ function App() {
 
   // обработчик удаления карточки
   function handleCardDelete(card) {
-    api.deleteCard(card._id).then(() => {
-      setCards((cards) => cards.filter((x) => x !== card));
-    });
+    api
+      .deleteCard(card._id)
+      .then(() => {
+        setCards((cards) => cards.filter((x) => x !== card));
+      })
+      .catch((err) => console.log("ERORR:", err));
   }
 
   React.useEffect(() => {
@@ -166,7 +172,7 @@ function App() {
   const handleTokenCheck = () => {
     // достаем инфо из локалсторедж
     const jwt = localStorage.getItem("jwt");
-    console.log("jwt", jwt);
+    // console.log("jwt", jwt);
     if (jwt) {
       // проверяем токен пользователя
       auth
@@ -182,21 +188,58 @@ function App() {
     }
   };
 
-  // 
-  function handleLogin()  {
+  function handleRegister(email, password) {
+    auth
+      .register(email, password)
+      .then((res) => {
+        if (res.data._id) {
+          setToolTipStatus(true);
+          setToolTip(true); // по дефолту значение тру
+          history.push("/sign-in"); // если проверка пароля прошла успешно то мы редеректим на страницу авторизации
+        }
+      })
+      .catch((err) => {
+        setToolTipStatus(false);
+        setToolTip(true);
+        console.log("Error at register", err);
+      });
+  }
+
+  function handleAuthorize(email, password) {
+    auth
+      .authorize(email, password)
+      .then((res) => {
+        if (res.token) {
+          setValues({
+            //обновить стейт при успешной запросе поля формы очистятся и
+            email: "",
+            password: "",
+          });
+          localStorage.setItem("jwt", res.token); // то мы должны локал сторедж записать джвт и рес джвт / запись токенов в локал сторедж
+          handleLogin(); // вызывется колбэк который зpадан снаружи в случа успешной регистрации и после этого редирект
+        } else {
+          setToolTipStatus(false);
+          setToolTip(true);
+        }
+      })
+      .catch((err) => {
+        console.log("Error at logIn", err);
+      });
+  }
+
+  //
+  function handleLogin() {
     setLoggedIn(true);
-    setUserEmailStatus(true);
     handleTokenCheck();
-  };
+  }
 
   function handleLogout(evt) {
     evt.preventDefault();
 
     localStorage.removeItem("jwt");
     setLoggedIn(false);
-    setUserEmailStatus(false);
     // history.push("/sign-in");
-  };
+  }
 
   return (
     <div>
@@ -225,7 +268,6 @@ function App() {
             cards={cards}
             loggedIn={loggedIn}
             exit={handleLogout}
-            status={userEmailStatus}
             userEmail={userEmail}
           />
 
@@ -233,10 +275,16 @@ function App() {
             <Register
               onToolTip={handleToolTipShow}
               toolTipStatus={setToolTipStatus}
+              submitRegister={handleRegister}
             />
           </Route>
           <Route path="/sign-in">
-            <Login onLogin={handleLogin} />
+            <Login
+              onLogin={handleLogin}
+              onToolTip={handleToolTipShow}
+              toolTipStatus={setToolTipStatus}
+              submitAuthorize={handleAuthorize}
+            />
           </Route>
           <Route exact path="/">
             {loggedIn ? <Redirect to="/main" /> : <Redirect to="/sign-in" />}
